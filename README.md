@@ -2,6 +2,28 @@
 
 控え選手向けの自主練習支援Webアプリ
 
+🔗 Demo  
+https://hayashi-12.github.io/6th_Man-html/
+
+🔗 GitHub  
+https://github.com/Hayashi-12/6th_Man-html
+
+## 📸 アプリ画面
+
+### ホーム画面
+
+![ホーム画面](images/home.png)
+
+### 練習メニュー診断
+
+![診断画面](images/diagnosis.png)
+
+### 練習タイマー
+
+![タイマー画面](images/timer.png)
+
+---
+
 ## 🏀 概要
 
 「6th Man」は、バスケットボールの控え選手向けに自主練習を支援するWebアプリです。
@@ -61,8 +83,6 @@
 
 ### 実用性を意識した設計
 
-単にメニューを表示するだけでなく、
-
 - 練習メニュー提案
 - タイマー機能
 - 練習記録
@@ -84,15 +104,3 @@
 - 練習履歴の分析機能
 - Reactを用いたSPA化
 - スマートフォン向けUI改善
-
----
-
-## 🔗 公開URL
-
-### Demo
-
-https://hayashi-12.github.io/6th_Man-html/
-
-### GitHub
-
-https://github.com/Hayashi-12/6th_Man-html
