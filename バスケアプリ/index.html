@@ -1,0 +1,2673 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>6th Man - 控え選手のための自主練コーチ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Noto+Sans+JP:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <!-- Chart.js: グラフ描画ライブラリ（CDNから読み込み） -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    /* ============================================
+       6th Man - スタイルシート
+       
+       【初心者向け解説】
+       CSSは上から順に「ページ全体 → 各パーツ」の順で書くと
+       整理しやすいです。
+       ============================================ */
+
+    /* --- リセット & 基本設定 --- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      /* ↑ すべての要素のpadding・borderを幅に含める設定。
+         これがないとレイアウトが崩れやすくなります */
+    }
+
+    :root {
+      /* 色の変数（一箇所で管理すると後から変更しやすい） */
+      --court-orange: #E8611A;
+      --court-orange-light: #FF8A4C;
+      --dark-navy: #0B1223;
+      --deep-navy: #111B2E;
+      --card-bg: #162033;
+      --card-border: #1E2D47;
+      --text-primary: #F0F2F5;
+      --text-secondary: #8B97AD;
+      --text-dim: #56627A;
+      --success-green: #34D399;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: var(--dark-navy);
+      color: var(--text-primary);
+      min-height: 100vh;
+      /* ↑ 画面の高さいっぱいに背景を広げる */
+    }
+
+    /* --- ヘッダー --- */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      /* ↑ flexの子要素の間隔を空けるプロパティ */
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--court-orange);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .logo-text {
+      font-weight: 900;
+      font-size: 20px;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span {
+      color: var(--court-orange);
+    }
+
+    /* --- ナビゲーション --- */
+    .nav {
+      display: flex;
+      gap: 4px;
+      background: var(--deep-navy);
+      border-radius: 12px;
+      padding: 4px;
+    }
+
+    .nav-btn {
+      /* ↑ ボタンの見た目をリセットしてカスタムする */
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      /* ↑ 色や背景の変化を0.2秒かけて滑らかにする */
+    }
+
+    .nav-btn:hover {
+      color: var(--text-primary);
+      background: var(--card-bg);
+    }
+
+    .nav-btn.active {
+      background: var(--card-bg);
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* --- メインコンテンツ --- */
+    .main {
+      max-width: 720px;
+      margin: 0 auto;
+      /* ↑ 左右のmarginをautoにすると中央寄せになる */
+      padding: 40px 24px;
+    }
+
+    /* --- ページ（表示/非表示の切り替え） --- */
+    .page {
+      display: none;
+      /* ↑ 初期状態では全ページ非表示 */
+    }
+
+    .page.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+      /* ↑ 表示時にふわっと現れるアニメーション */
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- ヒーローセクション（トップ画面） --- */
+    .hero {
+      text-align: center;
+      padding: 40px 0 32px;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(232, 97, 26, 0.15);
+      color: var(--court-orange-light);
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: 32px;
+      font-weight: 900;
+      line-height: 1.3;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--court-orange);
+    }
+
+    .hero p {
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1.7;
+      max-width: 480px;
+      margin: 0 auto 32px;
+    }
+
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--court-orange);
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .hero-cta:hover {
+      background: var(--court-orange-light);
+    }
+
+    /* --- 特徴カード --- */
+    .features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      /* ↑ 2列のグリッドレイアウト */
+      gap: 12px;
+      margin-top: 40px;
+    }
+
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .feature-card h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .feature-card p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* --- 診断フォーム --- */
+    .diagnosis-section {
+      margin-top: 8px;
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+
+    .step-indicator {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .step-dot {
+      flex: 1;
+      height: 4px;
+      background: var(--card-border);
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .step-dot.done {
+      background: var(--court-orange);
+    }
+
+    .step-dot.current {
+      background: var(--court-orange);
+    }
+
+    .question-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 16px;
+    }
+
+    .question-card h3 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .question-hint {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+
+    .option-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .option-btn {
+      background: var(--deep-navy);
+      border: 1.5px solid var(--card-border);
+      color: var(--text-primary);
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+    }
+
+    .option-btn:hover {
+      border-color: var(--court-orange);
+      background: rgba(232, 97, 26, 0.08);
+    }
+
+    .option-btn.selected {
+      border-color: var(--court-orange);
+      background: rgba(232, 97, 26, 0.12);
+      color: var(--court-orange-light);
+      font-weight: 600;
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 24px;
+    }
+
+    .btn-back {
+      background: none;
+      border: 1px solid var(--card-border);
+      color: var(--text-secondary);
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
+    }
+
+    .btn-next {
+      background: var(--court-orange);
+      border: none;
+      color: white;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-next:hover {
+      background: var(--court-orange-light);
+    }
+
+    .btn-next:disabled {
+      background: var(--text-dim);
+      cursor: not-allowed;
+    }
+
+    /* --- 結果画面 --- */
+    .result-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .result-header h2 {
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .result-header p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .menu-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+
+    .menu-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 8px;
+    }
+
+    .menu-name {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .menu-time {
+      font-size: 12px;
+      color: var(--court-orange-light);
+      background: rgba(232, 97, 26, 0.12);
+      padding: 4px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .menu-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .menu-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .menu-tag {
+      font-size: 11px;
+      color: var(--text-dim);
+      background: var(--deep-navy);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .btn-retry {
+      width: 100%;
+      margin-top: 20px;
+      background: none;
+      border: 1px solid var(--card-border);
+      color: var(--text-secondary);
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-retry:hover {
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
+    }
+
+    /* --- タイマー画面 --- */
+
+    /* 
+      【解説】SVGの円を使った円形タイマー。
+      stroke-dasharray と stroke-dashoffset で
+      円周上の「塗り」を制御してカウントダウンを表現します。
+    */
+    .timer-container {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .timer-menu-progress {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .timer-menu-name {
+      font-size: 20px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    .timer-menu-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+      max-width: 400px;
+      margin: 0 auto 28px;
+      line-height: 1.6;
+    }
+
+    .timer-circle-wrap {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      margin: 0 auto 28px;
+    }
+
+    .timer-circle-wrap svg {
+      transform: rotate(-90deg);
+      /* ↑ SVGの円は右(3時方向)から始まるので、
+         -90度回転して上(12時方向)から始めます */
+    }
+
+    .timer-bg-circle {
+      fill: none;
+      stroke: var(--card-border);
+      stroke-width: 8;
+    }
+
+    .timer-progress-circle {
+      fill: none;
+      stroke: var(--court-orange);
+      stroke-width: 8;
+      stroke-linecap: round;
+      /* ↑ 線の先端を丸くする */
+      transition: stroke-dashoffset 0.5s linear;
+      /* ↑ アニメーションを滑らかにする */
+    }
+
+    .timer-progress-circle.warning {
+      stroke: #EF4444;
+      /* 残り10秒で赤くする */
+    }
+
+    .timer-text-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      /* ↑ absolute配置で円の中央にテキストを重ねる定番テクニック */
+    }
+
+    .timer-time {
+      font-size: 48px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      /* ↑ 数字の幅を揃えて、カウント時にガタつかないようにする */
+    }
+
+    .timer-time.warning {
+      color: #EF4444;
+    }
+
+    .timer-label {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .timer-controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .timer-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .timer-btn-play {
+      background: var(--court-orange);
+      color: white;
+      width: 64px;
+      height: 64px;
+      font-size: 26px;
+    }
+
+    .timer-btn-play:hover {
+      background: var(--court-orange-light);
+    }
+
+    .timer-btn-secondary {
+      background: var(--card-bg);
+      color: var(--text-secondary);
+      border: 1px solid var(--card-border);
+    }
+
+    .timer-btn-secondary:hover {
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
+    }
+
+    /* メニュー一覧（タイマー下部） */
+    .timer-queue {
+      margin-top: 8px;
+    }
+
+    .timer-queue-title {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+    }
+
+    .timer-queue-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .timer-queue-item.is-current {
+      border-color: var(--court-orange);
+      background: rgba(232, 97, 26, 0.08);
+    }
+
+    .timer-queue-item.is-done {
+      opacity: 0.4;
+      text-decoration: line-through;
+    }
+
+    .tq-number {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--deep-navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .is-current .tq-number {
+      background: var(--court-orange);
+      color: white;
+    }
+
+    .is-done .tq-number {
+      background: var(--success-green);
+      color: white;
+    }
+
+    .tq-name {
+      flex: 1;
+    }
+
+    .tq-time {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .timer-complete {
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .timer-complete-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .timer-complete h2 {
+      font-size: 24px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .timer-complete p {
+      color: var(--text-secondary);
+      font-size: 15px;
+      margin-bottom: 24px;
+    }
+
+    .timer-complete-stats {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .tc-stat {
+      text-align: center;
+    }
+
+    .tc-stat-value {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--court-orange);
+    }
+
+    .tc-stat-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .btn-start-training {
+      width: 100%;
+      margin-top: 12px;
+      background: var(--court-orange);
+      border: none;
+      color: white;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-start-training:hover {
+      background: var(--court-orange-light);
+    }
+
+    /* --- 成長カレンダー --- */
+
+    /*
+      【解説】GitHubの「草」のような練習記録カレンダー。
+      CSS Gridで7行（曜日）× N列（週）のマス目を並べます。
+      LocalStorageにデータを保存するので、
+      ブラウザを閉じてもデータが残ります。
+    */
+
+    .calendar-stats {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .cal-stat-card {
+      flex: 1;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .cal-stat-value {
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .cal-stat-value.orange { color: var(--court-orange); }
+    .cal-stat-value.green { color: var(--success-green); }
+
+    .cal-stat-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .calendar-month-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .calendar-month-title {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .cal-nav-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-secondary);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .cal-nav-btn:hover {
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
+    }
+
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .cal-weekday {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-dim);
+      padding: 4px 0;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      /* ↑ 7列 = 日〜土 */
+      gap: 4px;
+    }
+
+    .cal-day {
+      aspect-ratio: 1;
+      /* ↑ 正方形にする */
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .cal-day.empty {
+      cursor: default;
+    }
+
+    .cal-day.inactive {
+      background: var(--deep-navy);
+      color: var(--text-dim);
+    }
+
+    .cal-day.inactive:hover {
+      background: var(--card-bg);
+    }
+
+    .cal-day.today {
+      border: 1.5px solid var(--court-orange);
+      color: var(--text-primary);
+    }
+
+    .cal-day.practiced {
+      background: var(--success-green);
+      color: var(--dark-navy);
+      font-weight: 700;
+    }
+
+    .cal-day.practiced:hover {
+      background: #2BC08A;
+    }
+
+    .cal-day.future {
+      background: transparent;
+      color: var(--text-dim);
+      cursor: default;
+      opacity: 0.3;
+    }
+
+    .calendar-legend {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .legend-box {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+
+    .legend-box.off { background: var(--deep-navy); }
+    .legend-box.on { background: var(--success-green); }
+
+    .calendar-today-action {
+      margin-top: 20px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .calendar-today-action h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .calendar-today-action p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 14px;
+    }
+
+    .btn-record-today {
+      background: var(--success-green);
+      border: none;
+      color: var(--dark-navy);
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-record-today:hover {
+      background: #2BC08A;
+    }
+
+    .btn-record-today.recorded {
+      background: var(--text-dim);
+      cursor: default;
+      color: var(--text-secondary);
+    }
+
+    /* --- スキルレーダーチャート --- */
+
+    /*
+      【解説】Chart.jsが描画する<canvas>のサイズ制御と、
+      スライダー（input[type="range"]）のカスタマイズ。
+      ブラウザ標準のスライダーは見た目が地味なので、
+      CSSで見た目を上書きしています。
+    */
+
+    .skill-chart-wrap {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .skill-chart-container {
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    .skill-sliders {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .skill-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .skill-slider-label {
+      width: 110px;
+      font-size: 14px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .skill-slider-label .skill-emoji {
+      margin-right: 6px;
+    }
+
+    /* スライダーのカスタマイズ */
+    input[type="range"] {
+      -webkit-appearance: none;
+      /* ↑ ブラウザ標準の見た目をリセット */
+      appearance: none;
+      flex: 1;
+      height: 6px;
+      background: var(--card-border);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    /* スライダーの「つまみ」部分 */
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: var(--court-orange);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      background: var(--court-orange-light);
+    }
+
+    /* Firefox用 */
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: var(--court-orange);
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+
+    .skill-slider-value {
+      width: 32px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--court-orange);
+    }
+
+    .skill-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-save-skill {
+      flex: 1;
+      background: var(--court-orange);
+      border: none;
+      color: white;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-save-skill:hover {
+      background: var(--court-orange-light);
+    }
+
+    .skill-history-section {
+      margin-top: 20px;
+    }
+
+    .skill-history-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .skill-history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .skill-history-date {
+      color: var(--text-secondary);
+    }
+
+    .skill-history-avg {
+      color: var(--court-orange);
+      font-weight: 700;
+    }
+
+    .skill-history-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 4px 8px;
+    }
+
+    .skill-history-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .skill-tip {
+      margin-top: 16px;
+      padding: 14px 16px;
+      background: rgba(232, 97, 26, 0.08);
+      border-radius: 10px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .skill-tip strong {
+      color: var(--court-orange-light);
+    }
+
+    /* --- レスポンシブ（スマホ対応） --- */
+    @media (max-width: 600px) {
+      .nav {
+        display: none;
+        /* スマホでは下部ナビに変更 */
+      }
+
+      .header {
+        justify-content: center;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+        /* スマホでは1列 */
+      }
+
+      .hero h1 {
+        font-size: 26px;
+      }
+
+      .main {
+        padding: 24px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================
+       ヘッダー
+       ======================================== -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">🏀</div>
+      <div class="logo-text"><span>6th</span> Man</div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" onclick="showPage('home')">ホーム</button>
+      <button class="nav-btn" onclick="showPage('diagnosis')">診断</button>
+      <button class="nav-btn" onclick="showPage('calendar')">カレンダー</button>
+      <button class="nav-btn" onclick="showPage('skill')">スキル</button>
+    </nav>
+  </header>
+
+  <!-- ========================================
+       メインコンテンツ
+       ======================================== -->
+  <main class="main">
+
+    <!-- ===== ホーム画面 ===== -->
+    <div id="page-home" class="page active">
+      <div class="hero">
+        <div class="hero-badge">🔥 控え選手のための自主練コーチ</div>
+        <h1>今日の練習、<br><em>もう迷わない。</em></h1>
+        <p>
+          弱点・使える時間・器具に合わせて
+          最適な自主練メニューを提案します。
+        </p>
+        <button class="hero-cta" onclick="showPage('diagnosis')">
+          診断スタート →
+        </button>
+      </div>
+
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>弱点に特化</h3>
+          <p>シュート・ドリブル・ディフェンスなど、伸ばしたいスキルに合わせた練習メニュー</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⏱️</div>
+          <h3>時間にフィット</h3>
+          <p>30分から120分まで、使える時間に合わせて最適なメニューを自動構成</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>成長を可視化</h3>
+          <p>練習記録をカレンダーで管理。継続のモチベーションを支えます</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>体育館で使える</h3>
+          <p>スマホ対応。体育館でメニューを見ながら練習できます</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 診断画面 ===== -->
+    <div id="page-diagnosis" class="page">
+      <div class="diagnosis-section">
+        <h2 class="page-title">練習メニュー診断</h2>
+        <p class="page-subtitle">3つの質問に答えるだけで、あなたに最適なメニューを提案します</p>
+
+        <!-- ステップのインジケーター（進捗バー） -->
+        <div class="step-indicator">
+          <div class="step-dot current" id="dot-0"></div>
+          <div class="step-dot" id="dot-1"></div>
+          <div class="step-dot" id="dot-2"></div>
+        </div>
+
+        <!-- 質問1: 伸ばしたいスキル -->
+        <div id="step-0" class="question-step">
+          <div class="question-card">
+            <h3>💪 伸ばしたいスキルは？</h3>
+            <p class="question-hint">一番強化したいものを1つ選んでください</p>
+            <div class="option-grid">
+              <button class="option-btn" onclick="selectOption(0, this, 'シュート')">🎯 シュート（精度を上げたい）</button>
+              <button class="option-btn" onclick="selectOption(0, this, 'ドリブル')">⛹ ドリブル（ハンドリング強化）</button>
+              <button class="option-btn" onclick="selectOption(0, this, 'ディフェンス')">🛡️ ディフェンス（フットワーク）</button>
+              <button class="option-btn" onclick="selectOption(0, this, 'フィジカル')">🏋️ フィジカル（体力・筋力）</button>
+            </div>
+          </div>
+          <div class="nav-buttons">
+            <div></div>
+            <button class="btn-next" id="next-0" disabled onclick="nextStep(1)">次へ →</button>
+          </div>
+        </div>
+
+        <!-- 質問2: 使える時間 -->
+        <div id="step-1" class="question-step" style="display:none;">
+          <div class="question-card">
+            <h3>⏰ 使える時間は？</h3>
+            <p class="question-hint">今日の自主練に使える時間を選んでください</p>
+            <div class="option-grid">
+              <button class="option-btn" onclick="selectOption(1, this, '30分')">30分（サクッと集中）</button>
+              <button class="option-btn" onclick="selectOption(1, this, '60分')">60分（しっかり練習）</button>
+              <button class="option-btn" onclick="selectOption(1, this, '90分')">90分（がっつりトレーニング）</button>
+            </div>
+          </div>
+          <div class="nav-buttons">
+            <button class="btn-back" onclick="prevStep(0)">← 戻る</button>
+            <button class="btn-next" id="next-1" disabled onclick="nextStep(2)">次へ →</button>
+          </div>
+        </div>
+
+        <!-- 質問3: 使える器具 -->
+        <div id="step-2" class="question-step" style="display:none;">
+          <div class="question-card">
+            <h3>🏀 使える器具は？</h3>
+            <p class="question-hint">練習場所にあるものを選んでください</p>
+            <div class="option-grid">
+              <button class="option-btn" onclick="selectOption(2, this, 'ボールのみ')">ボールのみ（公園・外コート）</button>
+              <button class="option-btn" onclick="selectOption(2, this, 'ゴール有り')">ゴール有り（体育館・外ゴール）</button>
+              <button class="option-btn" onclick="selectOption(2, this, 'フル装備')">フル装備（コーン・ラダーなども）</button>
+            </div>
+          </div>
+          <div class="nav-buttons">
+            <button class="btn-back" onclick="prevStep(1)">← 戻る</button>
+            <button class="btn-next" id="next-2" disabled onclick="showResult()">結果を見る 🔥</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 結果画面 ===== -->
+    <div id="page-result" class="page">
+      <div class="result-header">
+        <h2>🏀 今日の自主練メニュー</h2>
+        <p id="result-summary"></p>
+      </div>
+      <div id="result-menus"></div>
+      <button class="btn-start-training" onclick="startTraining()">▶ この練習を始める</button>
+      <button class="btn-retry" onclick="resetDiagnosis()">もう一度診断する</button>
+    </div>
+
+    <!-- ===== タイマー画面 ===== -->
+    <div id="page-timer" class="page">
+      <div class="timer-container" id="timer-active-view">
+        <div class="timer-menu-progress" id="timer-progress-text">1 / 3 メニュー</div>
+        <div class="timer-menu-name" id="timer-menu-name">フォームシューティング</div>
+        <div class="timer-menu-desc" id="timer-menu-desc">説明テキスト</div>
+
+        <!-- 円形タイマー（SVG） -->
+        <!--
+          【解説】SVGで円を2つ重ねています。
+          - timer-bg-circle: 背景のグレーの円
+          - timer-progress-circle: オレンジの進捗円
+          
+          円周 = 2π × 半径 = 2 × 3.14159 × 90 ≒ 565.5
+          stroke-dasharray="565.5" で円周全体を1つの線分とし、
+          stroke-dashoffset を変えることで「どこまで塗るか」を制御します。
+        -->
+        <div class="timer-circle-wrap">
+          <svg viewBox="0 0 200 200" width="220" height="220">
+            <circle class="timer-bg-circle" cx="100" cy="100" r="90"></circle>
+            <circle class="timer-progress-circle" id="timer-circle" cx="100" cy="100" r="90"
+              stroke-dasharray="565.5" stroke-dashoffset="0"></circle>
+          </svg>
+          <div class="timer-text-overlay">
+            <div class="timer-time" id="timer-display">15:00</div>
+            <div class="timer-label">残り時間</div>
+          </div>
+        </div>
+
+        <!-- タイマー操作ボタン -->
+        <div class="timer-controls">
+          <button class="timer-btn timer-btn-secondary" onclick="resetCurrentTimer()" title="リセット">↺</button>
+          <button class="timer-btn timer-btn-play" id="timer-play-btn" onclick="toggleTimer()">▶</button>
+          <button class="timer-btn timer-btn-secondary" onclick="skipMenu()" title="スキップ">⏭</button>
+        </div>
+
+        <!-- メニュー一覧 -->
+        <div class="timer-queue">
+          <div class="timer-queue-title">練習メニュー</div>
+          <div id="timer-queue-list"></div>
+        </div>
+      </div>
+
+      <!-- 完了画面 -->
+      <div class="timer-complete" id="timer-complete-view" style="display:none;">
+        <div class="timer-complete-icon">🎉</div>
+        <h2>練習完了！</h2>
+        <p>今日もよく頑張りました！</p>
+        <div class="timer-complete-stats">
+          <div class="tc-stat">
+            <div class="tc-stat-value" id="complete-menus">0</div>
+            <div class="tc-stat-label">メニュー数</div>
+          </div>
+          <div class="tc-stat">
+            <div class="tc-stat-value" id="complete-time">0</div>
+            <div class="tc-stat-label">練習時間（分）</div>
+          </div>
+        </div>
+        <button class="btn-start-training" onclick="showPage('home')">ホームに戻る</button>
+      </div>
+    </div>
+
+    <!-- ===== カレンダー画面 ===== -->
+    <div id="page-calendar" class="page">
+      <h2 class="page-title">成長カレンダー</h2>
+      <p class="page-subtitle">練習した日を記録して、継続を可視化しよう</p>
+
+      <!-- 統計カード -->
+      <div class="calendar-stats">
+        <div class="cal-stat-card">
+          <div class="cal-stat-value orange" id="stat-total">0</div>
+          <div class="cal-stat-label">累計練習日</div>
+        </div>
+        <div class="cal-stat-card">
+          <div class="cal-stat-value green" id="stat-streak">0</div>
+          <div class="cal-stat-label">連続記録</div>
+        </div>
+        <div class="cal-stat-card">
+          <div class="cal-stat-value orange" id="stat-month">0</div>
+          <div class="cal-stat-label">今月の練習</div>
+        </div>
+      </div>
+
+      <!-- 月ナビゲーション -->
+      <div class="calendar-month-nav">
+        <button class="cal-nav-btn" onclick="changeMonth(-1)">←</button>
+        <div class="calendar-month-title" id="calendar-month-title">2026年6月</div>
+        <button class="cal-nav-btn" onclick="changeMonth(1)">→</button>
+      </div>
+
+      <!-- 曜日ヘッダー -->
+      <div class="calendar-weekdays">
+        <div class="cal-weekday">日</div>
+        <div class="cal-weekday">月</div>
+        <div class="cal-weekday">火</div>
+        <div class="cal-weekday">水</div>
+        <div class="cal-weekday">木</div>
+        <div class="cal-weekday">金</div>
+        <div class="cal-weekday">土</div>
+      </div>
+
+      <!-- カレンダーグリッド（JSで描画） -->
+      <div class="calendar-grid" id="calendar-grid"></div>
+
+      <!-- 凡例 -->
+      <div class="calendar-legend">
+        <div class="legend-box off"></div>
+        <span>未練習</span>
+        <div class="legend-box on"></div>
+        <span>練習済み</span>
+      </div>
+
+      <!-- 今日のアクション -->
+      <div class="calendar-today-action">
+        <h3 id="today-action-title">今日の練習は？</h3>
+        <p id="today-action-desc">ボタンを押して今日の練習を記録しよう</p>
+        <button class="btn-record-today" id="btn-record-today" onclick="toggleToday()">
+          ✓ 今日練習した！
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== スキルレーダーチャート画面 ===== -->
+    <div id="page-skill" class="page">
+      <h2 class="page-title">スキル評価</h2>
+      <p class="page-subtitle">自分のスキルを5段階で評価してレーダーチャートで確認しよう</p>
+
+      <!-- スライダー入力 -->
+      <div class="skill-sliders">
+        <div class="skill-slider-row">
+          <div class="skill-slider-label"><span class="skill-emoji">🎯</span>シュート</div>
+          <input type="range" min="1" max="5" value="3" id="skill-shooting" oninput="onSkillChange()">
+          <div class="skill-slider-value" id="val-shooting">3</div>
+        </div>
+        <div class="skill-slider-row">
+          <div class="skill-slider-label"><span class="skill-emoji">⛹</span>ドリブル</div>
+          <input type="range" min="1" max="5" value="3" id="skill-dribble" oninput="onSkillChange()">
+          <div class="skill-slider-value" id="val-dribble">3</div>
+        </div>
+        <div class="skill-slider-row">
+          <div class="skill-slider-label"><span class="skill-emoji">🛡️</span>ディフェンス</div>
+          <input type="range" min="1" max="5" value="3" id="skill-defense" oninput="onSkillChange()">
+          <div class="skill-slider-value" id="val-defense">3</div>
+        </div>
+        <div class="skill-slider-row">
+          <div class="skill-slider-label"><span class="skill-emoji">💪</span>フィジカル</div>
+          <input type="range" min="1" max="5" value="3" id="skill-physical" oninput="onSkillChange()">
+          <div class="skill-slider-value" id="val-physical">3</div>
+        </div>
+        <div class="skill-slider-row">
+          <div class="skill-slider-label"><span class="skill-emoji">🎯</span>パス</div>
+          <input type="range" min="1" max="5" value="3" id="skill-pass" oninput="onSkillChange()">
+          <div class="skill-slider-value" id="val-pass">3</div>
+        </div>
+        <div class="skill-slider-row">
+          <div class="skill-slider-label"><span class="skill-emoji">🧠</span>判断力</div>
+          <input type="range" min="1" max="5" value="3" id="skill-iq" oninput="onSkillChange()">
+          <div class="skill-slider-value" id="val-iq">3</div>
+        </div>
+      </div>
+
+      <!-- レーダーチャート -->
+      <div class="skill-chart-wrap">
+        <div class="skill-chart-container">
+          <!--
+            【解説】Chart.jsは<canvas>要素に描画します。
+            JSでChart.jsのインスタンスを作り、データを渡すと
+            自動でグラフが描画されます。
+          -->
+          <canvas id="skill-radar-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- 保存ボタン -->
+      <div class="skill-actions">
+        <button class="btn-save-skill" onclick="saveSkillRecord()">📊 この評価を記録する</button>
+      </div>
+
+      <!-- 過去の記録 -->
+      <div class="skill-history-section">
+        <div class="skill-history-title">📅 評価の記録</div>
+        <div id="skill-history-list"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================
+       JavaScript
+       
+       【初心者向け解説】
+       HTMLの構造が読み込まれた後にJSが実行されるよう、
+       bodyの閉じタグ直前に書くのが基本です。
+       ======================================== -->
+  <script>
+    // ============================================
+    // 1. ページ切り替え機能
+    // ============================================
+
+    /**
+     * showPage - 指定したページを表示し、他を非表示にする
+     * 
+     * 【解説】
+     * - querySelectorAll で「.page」クラスを持つ全要素を取得
+     * - forEach で全部を非表示にしてから、指定のページだけ表示
+     * - ナビボタンの active クラスも同じ考え方で切り替え
+     */
+    function showPage(pageId) {
+      // 全ページを非表示
+      document.querySelectorAll('.page').forEach(function(page) {
+        page.classList.remove('active');
+      });
+
+      // 指定ページを表示
+      document.getElementById('page-' + pageId).classList.add('active');
+
+      // ナビボタンのハイライトを切り替え
+      document.querySelectorAll('.nav-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+      });
+
+      // ページ名に対応するナビボタンをハイライト
+      var navNames = { home: 0, diagnosis: 1, calendar: 2, skill: 3 };
+      var navBtns = document.querySelectorAll('.nav-btn');
+      if (navNames[pageId] !== undefined && navBtns[navNames[pageId]]) {
+        navBtns[navNames[pageId]].classList.add('active');
+      }
+    }
+
+    // ============================================
+    // 2. 診断フォームの管理
+    // ============================================
+
+    // ユーザーの回答を保存する配列（3問分）
+    var answers = [null, null, null];
+
+    /**
+     * selectOption - 選択肢をクリックした時の処理
+     * 
+     * 【解説】
+     * - stepIndex: 何問目か（0, 1, 2）
+     * - btn: クリックされたボタン要素
+     * - value: 選択された値（'シュート' など）
+     */
+    function selectOption(stepIndex, btn, value) {
+      // 同じ質問の他の選択肢から selected を外す
+      var stepEl = document.getElementById('step-' + stepIndex);
+      stepEl.querySelectorAll('.option-btn').forEach(function(b) {
+        b.classList.remove('selected');
+      });
+
+      // クリックされたボタンに selected を付ける
+      btn.classList.add('selected');
+
+      // 回答を保存
+      answers[stepIndex] = value;
+
+      // 「次へ」ボタンを有効にする
+      document.getElementById('next-' + stepIndex).disabled = false;
+    }
+
+    /**
+     * nextStep / prevStep - 質問の切り替え
+     */
+    function nextStep(toStep) {
+      // 全ステップを非表示
+      document.querySelectorAll('.question-step').forEach(function(s) {
+        s.style.display = 'none';
+      });
+      // 目的のステップを表示
+      document.getElementById('step-' + toStep).style.display = 'block';
+
+      // ステップインジケーターを更新
+      updateDots(toStep);
+    }
+
+    function prevStep(toStep) {
+      nextStep(toStep);
+    }
+
+    function updateDots(current) {
+      for (var i = 0; i < 3; i++) {
+        var dot = document.getElementById('dot-' + i);
+        dot.classList.remove('done', 'current');
+        if (i < current) {
+          dot.classList.add('done');
+        } else if (i === current) {
+          dot.classList.add('current');
+        }
+      }
+    }
+
+    // ============================================
+    // 3. 練習メニューデータベース
+    //    （実際の自主練メニューをここに定義）
+    // ============================================
+
+    /**
+     * 【解説】
+     * メニューデータをJavaScriptのオブジェクトで管理します。
+     * skill（スキル）ごとにメニューを配列で持ち、
+     * equip（必要な器具）でフィルターします。
+     */
+    var menuDatabase = {
+      'シュート': [
+        {
+          name: 'フォームシューティング',
+          desc: 'ゴール近くから正しいフォームで1本ずつ丁寧に打つ。手首のスナップとフォロースルーを意識。',
+          time: 15,
+          equip: ['ゴール有り', 'フル装備'],
+          tags: ['基礎', 'フォーム修正']
+        },
+        {
+          name: 'スポットシューティング（5箇所）',
+          desc: 'エルボー・ウィング・コーナーなど5箇所から各10本。確率を記録して弱い位置を把握。',
+          time: 20,
+          equip: ['ゴール有り', 'フル装備'],
+          tags: ['中距離', '確率向上']
+        },
+        {
+          name: 'フリースロー100本チャレンジ',
+          desc: 'フリースローを連続で打ち、確率を記録。試合終盤のプレッシャーをイメージして集中。',
+          time: 30,
+          equip: ['ゴール有り', 'フル装備'],
+          tags: ['フリースロー', 'メンタル']
+        },
+        {
+          name: 'ワンドリブル → プルアップジャンパー',
+          desc: 'ドリブル1回からストップしてジャンプシュート。実戦に近い動きの中でシュートを安定させる。',
+          time: 15,
+          equip: ['ゴール有り', 'フル装備'],
+          tags: ['実戦的', 'ミドル']
+        },
+        {
+          name: 'エアシュートフォーム練習',
+          desc: 'ゴールなしでもOK。鏡や壁に向かってシュートフォームを繰り返し確認。肘の角度と指先の感覚を体に覚えさせる。',
+          time: 15,
+          equip: ['ボールのみ', 'ゴール有り', 'フル装備'],
+          tags: ['基礎', 'どこでもOK']
+        },
+        {
+          name: '壁打ちキャッチ＆シュートモーション',
+          desc: '壁にパスして返ってきたボールをキャッチ→即シュートモーション。キャッチからシュートまでのスピードを上げる。',
+          time: 15,
+          equip: ['ボールのみ', 'ゴール有り', 'フル装備'],
+          tags: ['クイックリリース', '反応']
+        }
+      ],
+      'ドリブル': [
+        {
+          name: 'ステーショナリードリブル（その場）',
+          desc: '右手→左手→クロスオーバー→ビハインドバック。まずは止まった状態で確実にボールを扱えるようにする。',
+          time: 10,
+          equip: ['ボールのみ', 'ゴール有り', 'フル装備'],
+          tags: ['基礎', 'ハンドリング']
+        },
+        {
+          name: 'フルコートドリブルドリル',
+          desc: 'コート端から端まで、行きはクロスオーバー、帰りはビハインドバック。スピードを徐々に上げる。',
+          time: 15,
+          equip: ['ゴール有り', 'フル装備'],
+          tags: ['スピード', '実戦的']
+        },
+        {
+          name: 'コーンジグザグドリブル',
+          desc: 'コーンを5個並べてジグザグにドリブル突破。クロスオーバー/レッグスルーなど技を変えながら。',
+          time: 15,
+          equip: ['フル装備'],
+          tags: ['緩急', 'ムーブ']
+        },
+        {
+          name: 'テニスボールドリブル',
+          desc: '片手でドリブルしながら、もう片方でテニスボールをキャッチ。顔を上げてドリブルする習慣をつける。',
+          time: 10,
+          equip: ['ボールのみ', 'ゴール有り', 'フル装備'],
+          tags: ['視野', '応用']
+        },
+        {
+          name: 'パワードリブル（低く強く）',
+          desc: '腰を落としてできるだけ強く低くドリブル。左右交互に100回×3セット。ボールを押し込む感覚を養う。',
+          time: 15,
+          equip: ['ボールのみ', 'ゴール有り', 'フル装備'],
+          tags: ['基礎', '力強さ']
+        }
+      ],
+      'ディフェンス': [
+        {
+          name: 'ディフェンスフットワーク（サイドステップ）',
+          desc: 'コート幅をサイドステップで往復。腰を落とし、足がクロスしないよう意識。10往復×3セット。',
+          time: 15,
+          equip: ['ボールのみ', 'ゴール有り', 'フル装備'],
+          tags: ['基礎', 'フットワーク']
+        },
+        {
+          name: 'クローズアウトドリル',
+          desc: 'ゴール下からフリースローライン付近までダッシュ→急停止で構える。実戦のシュートチェックを想定。',
+          time: 10,
+          equip: ['ゴール有り', 'フル装備'],
+          tags: ['実戦的', '反応']
+        },
+        {
+          name: 'ジグザグスライド',
+          desc: 'コートを斜めにサイドステップで移動、ラインでターン。6往復×3セット。脚の粘り強さを鍛える。',
+          time: 15,
+          equip: ['ボールのみ', 'ゴール有り', 'フル装備'],
+          tags: ['持久力', '下半身']
+        },
+        {
+          name: 'リアクションドリル（1人版）',
+          desc: 'タイマーでランダムに方向転換。3秒ごとに左右前後にステップ。判断スピードと体のキレを養う。',
+          time: 10,
+          equip: ['ボールのみ', 'ゴール有り', 'フル装備'],
+          tags: ['アジリティ', '判断力']
+        }
+      ],
+      'フィジカル': [
+        {
+          name: 'バスケ用サーキットトレーニング',
+          desc: 'スクワット20回→腕立て15回→バーピー10回→プランク30秒。これを3周。心肺も筋力も鍛える。',
+          time: 20,
+          equip: ['ボールのみ', 'ゴール有り', 'フル装備'],
+          tags: ['全身', '心肺']
+        },
+        {
+          name: 'ダッシュ＆ストップ（シャトルラン）',
+          desc: 'コートの各ラインまでダッシュ→タッチ→戻る。試合のような緩急のある動きで体力をつける。',
+          time: 15,
+          equip: ['ゴール有り', 'フル装備'],
+          tags: ['スプリント', '持久力']
+        },
+        {
+          name: 'ジャンプ力強化ドリル',
+          desc: 'タックジャンプ10回→スクワットジャンプ10回→片足ジャンプ左右各10回。3セット。リバウンド力向上に直結。',
+          time: 15,
+          equip: ['ボールのみ', 'ゴール有り', 'フル装備'],
+          tags: ['下半身', 'ジャンプ力']
+        },
+        {
+          name: '体幹トレーニング',
+          desc: 'プランク60秒→サイドプランク左右各30秒→ロシアンツイスト20回。接触プレーに負けない体幹を作る。',
+          time: 15,
+          equip: ['ボールのみ', 'ゴール有り', 'フル装備'],
+          tags: ['体幹', '安定感']
+        },
+        {
+          name: 'ウォールシット（空気椅子）',
+          desc: '壁に背中をつけて膝90度キープ。60秒×5セット。ディフェンス姿勢の持久力を地味に底上げ。',
+          time: 10,
+          equip: ['ボールのみ', 'ゴール有り', 'フル装備'],
+          tags: ['下半身', '忍耐']
+        }
+      ]
+    };
+
+    // ============================================
+    // 4. 結果表示ロジック
+    // ============================================
+
+    /**
+     * showResult - 回答に基づいてメニューを選んで表示
+     * 
+     * 【解説】
+     * 1. answers配列から回答を取り出す
+     * 2. menuDatabaseからスキルに合うメニューを取得
+     * 3. 器具条件でフィルター（filter）
+     * 4. 時間に合うように合計時間を計算しながら選ぶ
+     * 5. HTMLを組み立てて画面に表示（innerHTML）
+     */
+    function showResult() {
+      var skill = answers[0];    // 例: 'シュート'
+      var time = answers[1];     // 例: '60分'
+      var equip = answers[2];    // 例: 'ゴール有り'
+
+      // 使える時間を数値に変換
+      var maxTime = parseInt(time); // '60分' → 60
+
+      // スキルに対応するメニュー一覧を取得
+      var allMenus = menuDatabase[skill] || [];
+
+      // 器具条件に合うメニューだけを抽出（filter）
+      var available = allMenus.filter(function(menu) {
+        return menu.equip.indexOf(equip) !== -1;
+        // ↑ メニューの対応器具リストに、ユーザーの器具が含まれているか
+      });
+
+      // 時間に収まるようにメニューを選ぶ
+      var selected = [];
+      var totalTime = 0;
+
+      // シャッフル（ランダムに並び替え）して毎回違う提案に
+      available = shuffleArray(available);
+
+      for (var i = 0; i < available.length; i++) {
+        if (totalTime + available[i].time <= maxTime) {
+          selected.push(available[i]);
+          totalTime += available[i].time;
+        }
+      }
+
+      // タイマーで使えるようにグローバル変数に保存
+      selectedMenus = selected;
+
+      // 結果のサマリーテキスト
+      document.getElementById('result-summary').textContent =
+        skill + ' ／ ' + time + ' ／ ' + equip + '　→　合計' + totalTime + '分';
+
+      // メニューカードのHTMLを生成
+      var html = '';
+      for (var j = 0; j < selected.length; j++) {
+        var m = selected[j];
+        var tagsHtml = '';
+        for (var k = 0; k < m.tags.length; k++) {
+          tagsHtml += '<span class="menu-tag">' + m.tags[k] + '</span>';
+        }
+
+        html += '' +
+          '<div class="menu-card">' +
+          '  <div class="menu-card-top">' +
+          '    <div class="menu-name">' + m.name + '</div>' +
+          '    <div class="menu-time">' + m.time + '分</div>' +
+          '  </div>' +
+          '  <div class="menu-desc">' + m.desc + '</div>' +
+          '  <div class="menu-tags">' + tagsHtml + '</div>' +
+          '</div>';
+      }
+
+      // 生成したHTMLを画面に挿入
+      document.getElementById('result-menus').innerHTML = html;
+
+      // 結果ページを表示
+      showPage('result');
+    }
+
+    /**
+     * shuffleArray - 配列をランダムに並び替える
+     * （Fisher-Yatesアルゴリズム）
+     */
+    function shuffleArray(arr) {
+      var array = arr.slice(); // 元の配列をコピー
+      for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+      }
+      return array;
+    }
+
+    /**
+     * resetDiagnosis - 診断をリセットして最初に戻す
+     */
+    function resetDiagnosis() {
+      answers = [null, null, null];
+
+      // 全選択肢のselectedを外す
+      document.querySelectorAll('.option-btn').forEach(function(btn) {
+        btn.classList.remove('selected');
+      });
+
+      // 全ステップの「次へ」を無効に戻す
+      for (var i = 0; i < 3; i++) {
+        document.getElementById('next-' + i).disabled = true;
+      }
+
+      // 最初の質問を表示
+      document.querySelectorAll('.question-step').forEach(function(s) {
+        s.style.display = 'none';
+      });
+      document.getElementById('step-0').style.display = 'block';
+      updateDots(0);
+
+      // 診断ページに移動
+      showPage('diagnosis');
+    }
+
+    // ============================================
+    // 5. 練習タイマー機能
+    //
+    // 【解説】タイマーの仕組み
+    // - setInterval: 1秒ごとに関数を繰り返し実行する
+    // - clearInterval: setIntervalを止める
+    // - この2つの組み合わせでカウントダウンを実現します
+    //
+    // タイマーの「状態」は以下の変数で管理します:
+    // - timerRunning: 動いているか
+    // - timerSeconds: 残り秒数
+    // - timerInterval: setIntervalのID（停止時に使う）
+    // - currentMenuIndex: 今何個目のメニューか
+    // - selectedMenus: 提案されたメニューの配列
+    // ============================================
+
+    var timerRunning = false;
+    var timerSeconds = 0;
+    var timerTotalSeconds = 0;
+    var timerInterval = null;
+    var currentMenuIndex = 0;
+    var selectedMenus = [];  // showResultで格納する
+
+    /**
+     * startTraining - 結果画面から練習を開始する
+     * 
+     * selectedMenus は showResult で保存済み。
+     * 最初のメニューをタイマーにセットして画面を切り替えます。
+     */
+    function startTraining() {
+      if (selectedMenus.length === 0) return;
+
+      currentMenuIndex = 0;
+      loadMenuToTimer(0);
+      renderTimerQueue();
+      showPage('timer');
+
+      // 完了画面を隠し、タイマー画面を表示
+      document.getElementById('timer-active-view').style.display = 'block';
+      document.getElementById('timer-complete-view').style.display = 'none';
+    }
+
+    /**
+     * loadMenuToTimer - 指定したメニューをタイマーにセット
+     * 
+     * 【解説】
+     * メニューの time（分）を秒に変換してセット。
+     * SVGの円も初期状態（満タン）に戻します。
+     */
+    function loadMenuToTimer(index) {
+      var menu = selectedMenus[index];
+
+      // タイマーを停止状態にリセット
+      stopTimer();
+      timerRunning = false;
+      document.getElementById('timer-play-btn').textContent = '▶';
+
+      // メニュー情報を画面に反映
+      document.getElementById('timer-progress-text').textContent =
+        (index + 1) + ' / ' + selectedMenus.length + ' メニュー';
+      document.getElementById('timer-menu-name').textContent = menu.name;
+      document.getElementById('timer-menu-desc').textContent = menu.desc;
+
+      // 時間をセット（分 → 秒）
+      timerTotalSeconds = menu.time * 60;
+      timerSeconds = timerTotalSeconds;
+
+      // 表示を更新
+      updateTimerDisplay();
+      updateTimerCircle();
+
+      // 警告色をリセット
+      document.getElementById('timer-circle').classList.remove('warning');
+      document.getElementById('timer-display').classList.remove('warning');
+    }
+
+    /**
+     * toggleTimer - 再生/一時停止を切り替え
+     * 
+     * 【解説】
+     * setInterval(関数, 1000) は「1000ミリ秒（=1秒）ごとに関数を実行」
+     * 返り値の intervalId を clearInterval() に渡すと停止できます。
+     * この「IDを保存して後で止める」パターンは頻出です。
+     */
+    function toggleTimer() {
+      if (timerRunning) {
+        // 一時停止
+        stopTimer();
+        document.getElementById('timer-play-btn').textContent = '▶';
+      } else {
+        // スタート
+        timerRunning = true;
+        document.getElementById('timer-play-btn').textContent = '⏸';
+
+        timerInterval = setInterval(function() {
+          timerSeconds--;
+
+          // 残り10秒で警告色に
+          if (timerSeconds <= 10) {
+            document.getElementById('timer-circle').classList.add('warning');
+            document.getElementById('timer-display').classList.add('warning');
+          }
+
+          updateTimerDisplay();
+          updateTimerCircle();
+
+          // 0になったら次のメニューへ
+          if (timerSeconds <= 0) {
+            stopTimer();
+            goToNextMenu();
+          }
+        }, 1000);
+        // ↑ 1000ミリ秒 = 1秒ごとに実行
+      }
+    }
+
+    /**
+     * stopTimer - タイマーを停止する
+     */
+    function stopTimer() {
+      timerRunning = false;
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    /**
+     * updateTimerDisplay - 残り時間の「分:秒」表示を更新
+     * 
+     * 【解説】
+     * - Math.floor(秒 / 60) で「分」を取得
+     * - 秒 % 60 で「残り秒」を取得（%は余りを求める演算子）
+     * - padStart(2, '0') で1桁の数字を '05' のように0埋めする
+     */
+    function updateTimerDisplay() {
+      var min = Math.floor(timerSeconds / 60);
+      var sec = timerSeconds % 60;
+      document.getElementById('timer-display').textContent =
+        String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+    }
+
+    /**
+     * updateTimerCircle - SVGの円形プログレスを更新
+     * 
+     * 【解説】
+     * 円周 = 2 × π × 半径(90) ≒ 565.5
+     * 
+     * stroke-dashoffset を変えると「塗られていない部分」が増える。
+     * - offset = 0      → 全部塗られている（満タン）
+     * - offset = 565.5  → 何も塗られていない（ゼロ）
+     * 
+     * 経過割合に応じて offset を計算します。
+     */
+    function updateTimerCircle() {
+      var circumference = 565.5; // 2 × π × 90
+      var progress = timerSeconds / timerTotalSeconds; // 1.0 → 0.0
+      var offset = circumference * (1 - progress);
+
+      document.getElementById('timer-circle')
+        .setAttribute('stroke-dashoffset', offset);
+    }
+
+    /**
+     * goToNextMenu - 次のメニューに進む or 完了画面を表示
+     */
+    function goToNextMenu() {
+      currentMenuIndex++;
+
+      if (currentMenuIndex < selectedMenus.length) {
+        // 次のメニューをロード
+        loadMenuToTimer(currentMenuIndex);
+        renderTimerQueue();
+      } else {
+        // 全メニュー完了！
+        showComplete();
+      }
+    }
+
+    /**
+     * skipMenu - 現在のメニューをスキップ
+     */
+    function skipMenu() {
+      stopTimer();
+      goToNextMenu();
+    }
+
+    /**
+     * resetCurrentTimer - 現在のメニューのタイマーをリセット
+     */
+    function resetCurrentTimer() {
+      stopTimer();
+      document.getElementById('timer-play-btn').textContent = '▶';
+      timerSeconds = timerTotalSeconds;
+      updateTimerDisplay();
+      updateTimerCircle();
+      document.getElementById('timer-circle').classList.remove('warning');
+      document.getElementById('timer-display').classList.remove('warning');
+    }
+
+    /**
+     * renderTimerQueue - メニュー一覧を描画
+     * 
+     * 完了済み / 実行中 / 待機中 をCSSクラスで分けます。
+     */
+    function renderTimerQueue() {
+      var html = '';
+      for (var i = 0; i < selectedMenus.length; i++) {
+        var m = selectedMenus[i];
+        var cssClass = 'timer-queue-item';
+
+        if (i < currentMenuIndex) {
+          cssClass += ' is-done';    // 完了済み
+        } else if (i === currentMenuIndex) {
+          cssClass += ' is-current'; // 実行中
+        }
+
+        html +=
+          '<div class="' + cssClass + '">' +
+          '  <div class="tq-number">' + (i < currentMenuIndex ? '✓' : (i + 1)) + '</div>' +
+          '  <div class="tq-name">' + m.name + '</div>' +
+          '  <div class="tq-time">' + m.time + '分</div>' +
+          '</div>';
+      }
+      document.getElementById('timer-queue-list').innerHTML = html;
+    }
+
+    /**
+     * showComplete - 練習完了画面を表示
+     */
+    function showComplete() {
+      document.getElementById('timer-active-view').style.display = 'none';
+      document.getElementById('timer-complete-view').style.display = 'block';
+
+      // 統計を計算
+      var totalMinutes = 0;
+      for (var i = 0; i < selectedMenus.length; i++) {
+        totalMinutes += selectedMenus[i].time;
+      }
+      document.getElementById('complete-menus').textContent = selectedMenus.length;
+      document.getElementById('complete-time').textContent = totalMinutes;
+
+      // 練習完了時に自動で今日の記録をつける
+      recordPractice(getTodayString());
+      updateCalendarStats();
+    }
+
+    // ============================================
+    // 6. 成長カレンダー機能
+    //
+    // 【解説】LocalStorageの仕組み
+    // ブラウザにデータを保存する機能。
+    // - localStorage.setItem('キー', '値') で保存
+    // - localStorage.getItem('キー') で取得
+    // - ページを閉じてもデータは残る（同じブラウザなら）
+    //
+    // 練習記録は「日付の配列」としてJSON形式で保存します。
+    // 例: ["2026-06-01", "2026-06-03", "2026-06-05"]
+    // ============================================
+
+    var calendarYear = new Date().getFullYear();
+    var calendarMonth = new Date().getMonth(); // 0始まり（0=1月, 11=12月）
+
+    /**
+     * getPracticeData - LocalStorageから練習記録を読み込む
+     * 
+     * 【解説】
+     * JSON.parse: 文字列 → JavaScriptの配列/オブジェクトに変換
+     * JSON.stringify: 配列/オブジェクト → 文字列に変換
+     * LocalStorageは文字列しか保存できないので、
+     * この変換が必要になります。
+     */
+    function getPracticeData() {
+      var data = localStorage.getItem('6thman_practice');
+      if (data) {
+        try {
+          return JSON.parse(data);
+        } catch (e) {
+          return [];
+        }
+      }
+      return [];
+    }
+
+    /**
+     * savePracticeData - 練習記録をLocalStorageに保存
+     */
+    function savePracticeData(dates) {
+      localStorage.setItem('6thman_practice', JSON.stringify(dates));
+    }
+
+    /**
+     * getTodayString - 今日の日付を 'YYYY-MM-DD' 形式で返す
+     * 
+     * 【解説】
+     * getMonth() は 0始まり（1月=0）なので +1 する。
+     * padStart(2, '0') で '6' → '06' のようにゼロ埋め。
+     */
+    function getTodayString() {
+      var d = new Date();
+      var y = d.getFullYear();
+      var m = String(d.getMonth() + 1).padStart(2, '0');
+      var day = String(d.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + day;
+    }
+
+    /**
+     * formatDateString - 年・月・日から 'YYYY-MM-DD' を作る
+     */
+    function formatDateString(year, month, day) {
+      return year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    }
+
+    /**
+     * recordPractice - 指定日を練習済みとして記録
+     */
+    function recordPractice(dateStr) {
+      var data = getPracticeData();
+      if (data.indexOf(dateStr) === -1) {
+        data.push(dateStr);
+        savePracticeData(data);
+      }
+    }
+
+    /**
+     * removePractice - 指定日の記録を取り消す
+     */
+    function removePractice(dateStr) {
+      var data = getPracticeData();
+      var index = data.indexOf(dateStr);
+      if (index !== -1) {
+        data.splice(index, 1);
+        // ↑ splice(位置, 個数) で配列から要素を削除
+        savePracticeData(data);
+      }
+    }
+
+    /**
+     * renderCalendar - カレンダーのマス目を描画
+     * 
+     * 【解説】
+     * 1. その月の1日が何曜日かを取得（0=日, 1=月, ...）
+     * 2. 1日より前は空のマスで埋める
+     * 3. 各日付のマスを生成し、練習済みかどうかでクラスを変える
+     * 4. 未来の日付はクリックできないようにする
+     */
+    function renderCalendar() {
+      var data = getPracticeData();
+      var today = getTodayString();
+
+      // 月のタイトルを更新
+      var monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+      document.getElementById('calendar-month-title').textContent =
+        calendarYear + '年' + monthNames[calendarMonth];
+
+      // その月の日数と1日の曜日を取得
+      var firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+      // ↑ getDay() は曜日を返す（0=日曜日）
+      var daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+      // ↑ 「次の月の0日」=「今の月の最終日」というトリック
+
+      var todayDate = new Date();
+      var html = '';
+
+      // 1日より前の空マス
+      for (var i = 0; i < firstDay; i++) {
+        html += '<div class="cal-day empty"></div>';
+      }
+
+      // 各日のマス
+      for (var d = 1; d <= daysInMonth; d++) {
+        var dateStr = formatDateString(calendarYear, calendarMonth, d);
+        var isPracticed = data.indexOf(dateStr) !== -1;
+        var isToday = dateStr === today;
+        var isFuture = new Date(calendarYear, calendarMonth, d) > todayDate;
+
+        var classes = 'cal-day';
+        if (isFuture) {
+          classes += ' future';
+        } else if (isPracticed) {
+          classes += ' practiced';
+        } else {
+          classes += ' inactive';
+        }
+        if (isToday) {
+          classes += ' today';
+        }
+
+        // 未来でなければクリックで記録の切り替えができる
+        var onclick = '';
+        if (!isFuture) {
+          onclick = ' onclick="toggleDate(\'' + dateStr + '\')"';
+        }
+
+        html += '<div class="' + classes + '"' + onclick + '>' + d + '</div>';
+      }
+
+      document.getElementById('calendar-grid').innerHTML = html;
+
+      // 今日のボタン状態を更新
+      updateTodayButton();
+    }
+
+    /**
+     * toggleDate - 日付をクリックした時、記録のON/OFFを切り替え
+     */
+    function toggleDate(dateStr) {
+      var data = getPracticeData();
+      if (data.indexOf(dateStr) !== -1) {
+        removePractice(dateStr);
+      } else {
+        recordPractice(dateStr);
+      }
+      renderCalendar();
+      updateCalendarStats();
+    }
+
+    /**
+     * toggleToday - 「今日練習した！」ボタン
+     */
+    function toggleToday() {
+      toggleDate(getTodayString());
+    }
+
+    /**
+     * updateTodayButton - 今日の記録状態に合わせてボタンを更新
+     */
+    function updateTodayButton() {
+      var data = getPracticeData();
+      var btn = document.getElementById('btn-record-today');
+      var title = document.getElementById('today-action-title');
+      var desc = document.getElementById('today-action-desc');
+
+      if (data.indexOf(getTodayString()) !== -1) {
+        btn.textContent = '✓ 記録済み（タップで取消）';
+        btn.classList.add('recorded');
+        title.textContent = '🔥 今日も練習できた！';
+        desc.textContent = 'お疲れさま！この調子で続けよう';
+      } else {
+        btn.textContent = '✓ 今日練習した！';
+        btn.classList.remove('recorded');
+        title.textContent = '今日の練習は？';
+        desc.textContent = 'ボタンを押して今日の練習を記録しよう';
+      }
+    }
+
+    /**
+     * changeMonth - 月を前後に移動
+     */
+    function changeMonth(delta) {
+      calendarMonth += delta;
+      if (calendarMonth > 11) {
+        calendarMonth = 0;
+        calendarYear++;
+      } else if (calendarMonth < 0) {
+        calendarMonth = 11;
+        calendarYear--;
+      }
+      renderCalendar();
+    }
+
+    /**
+     * updateCalendarStats - 統計情報を計算して表示
+     * 
+     * 【解説】
+     * 連続記録（ストリーク）の計算:
+     * 今日から1日ずつ過去に遡り、練習記録がある限りカウント。
+     * 途切れた時点で止まる。
+     */
+    function updateCalendarStats() {
+      var data = getPracticeData();
+
+      // 累計練習日
+      document.getElementById('stat-total').textContent = data.length;
+
+      // 今月の練習日数
+      var currentMonthStr = new Date().getFullYear() + '-' +
+        String(new Date().getMonth() + 1).padStart(2, '0');
+      var monthCount = 0;
+      for (var i = 0; i < data.length; i++) {
+        if (data[i].substring(0, 7) === currentMonthStr) {
+          // ↑ "2026-06-05".substring(0, 7) → "2026-06"
+          monthCount++;
+        }
+      }
+      document.getElementById('stat-month').textContent = monthCount;
+
+      // 連続記録（ストリーク）を計算
+      var streak = 0;
+      var checkDate = new Date();
+
+      // 今日がまだ記録されていない場合、昨日から数え始める
+      if (data.indexOf(getTodayString()) === -1) {
+        checkDate.setDate(checkDate.getDate() - 1);
+      }
+
+      while (true) {
+        var y = checkDate.getFullYear();
+        var m = String(checkDate.getMonth() + 1).padStart(2, '0');
+        var d = String(checkDate.getDate()).padStart(2, '0');
+        var dateStr = y + '-' + m + '-' + d;
+
+        if (data.indexOf(dateStr) !== -1) {
+          streak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+          // ↑ 1日前に戻る
+        } else {
+          break;
+          // ↑ 途切れたらループ終了
+        }
+      }
+
+      document.getElementById('stat-streak').textContent = streak;
+    }
+
+    // ============================================
+    // 7. 初期化処理
+    //
+    // 【解説】
+    // ページ読み込み時に一度だけ実行する処理。
+    // カレンダーを描画して統計を更新します。
+    // ============================================
+    renderCalendar();
+    updateCalendarStats();
+
+    // ============================================
+    // 8. スキルレーダーチャート機能
+    //
+    // 【解説】Chart.jsの使い方
+    // 1. <canvas>要素を取得
+    // 2. new Chart(canvas, 設定) でグラフを作成
+    // 3. 設定オブジェクトに「種類」「データ」「見た目」を記述
+    //
+    // Chart.jsは設定オブジェクトの構造が大きいですが、
+    // やっていることは「どんなグラフに、何のデータを、
+    // どんな見た目で表示するか」の3つだけです。
+    // ============================================
+
+    var radarChart = null; // Chart.jsのインスタンスを保持
+
+    // スキル名の定義（スライダーのIDと対応）
+    var skillKeys = ['shooting', 'dribble', 'defense', 'physical', 'pass', 'iq'];
+    var skillLabels = ['シュート', 'ドリブル', 'ディフェンス', 'フィジカル', 'パス', '判断力'];
+
+    /**
+     * getSkillValues - 各スライダーの現在値を配列で返す
+     */
+    function getSkillValues() {
+      var values = [];
+      for (var i = 0; i < skillKeys.length; i++) {
+        values.push(Number(document.getElementById('skill-' + skillKeys[i]).value));
+      }
+      return values;
+    }
+
+    /**
+     * onSkillChange - スライダーを動かした時に呼ばれる
+     * 
+     * 数値表示を更新し、チャートのデータを更新して再描画。
+     */
+    function onSkillChange() {
+      // 各スライダーの横の数字を更新
+      for (var i = 0; i < skillKeys.length; i++) {
+        var val = document.getElementById('skill-' + skillKeys[i]).value;
+        document.getElementById('val-' + skillKeys[i]).textContent = val;
+      }
+
+      // チャートのデータを更新
+      if (radarChart) {
+        radarChart.data.datasets[0].data = getSkillValues();
+        radarChart.update();
+        // ↑ update()を呼ぶとChart.jsが自動で再描画する
+      }
+    }
+
+    /**
+     * initRadarChart - レーダーチャートを初期化
+     * 
+     * 【解説】Chart.jsの設定構造:
+     * {
+     *   type: 'radar',          ← グラフの種類
+     *   data: {                 ← 表示するデータ
+     *     labels: [...],        ← 各軸のラベル
+     *     datasets: [...]       ← データセット（複数OK）
+     *   },
+     *   options: {              ← 見た目の設定
+     *     scales: {...},        ← 軸の設定
+     *     plugins: {...}        ← プラグイン設定
+     *   }
+     * }
+     */
+    function initRadarChart() {
+      var ctx = document.getElementById('skill-radar-chart');
+      // ↑ getContext('2d')は不要。Chart.jsが自動で取得します。
+
+      // 過去の記録があればスライダーに反映
+      var savedSkills = loadLatestSkill();
+      if (savedSkills) {
+        for (var i = 0; i < skillKeys.length; i++) {
+          document.getElementById('skill-' + skillKeys[i]).value = savedSkills[i];
+          document.getElementById('val-' + skillKeys[i]).textContent = savedSkills[i];
+        }
+      }
+
+      var currentValues = getSkillValues();
+
+      // 前回の記録を取得（比較表示用）
+      var previousValues = loadPreviousSkill();
+
+      var datasets = [
+        {
+          label: '現在',
+          data: currentValues,
+          backgroundColor: 'rgba(232, 97, 26, 0.2)',
+          borderColor: '#E8611A',
+          borderWidth: 2,
+          pointBackgroundColor: '#E8611A',
+          pointBorderColor: '#fff',
+          pointRadius: 5,
+          pointHoverRadius: 7
+        }
+      ];
+
+      // 前回の記録があれば薄く重ねて表示
+      if (previousValues) {
+        datasets.push({
+          label: '前回',
+          data: previousValues,
+          backgroundColor: 'rgba(52, 211, 153, 0.08)',
+          borderColor: 'rgba(52, 211, 153, 0.4)',
+          borderWidth: 1.5,
+          borderDash: [4, 4],
+          // ↑ 点線にする
+          pointBackgroundColor: 'rgba(52, 211, 153, 0.4)',
+          pointRadius: 3
+        });
+      }
+
+      radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: skillLabels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          // ↑ 画面サイズに合わせて自動リサイズ
+          scales: {
+            r: {
+              // 'r' はレーダーチャートの放射状スケール
+              beginAtZero: true,
+              min: 0,
+              max: 5,
+              ticks: {
+                stepSize: 1,
+                color: '#56627A',
+                backdropColor: 'transparent',
+                font: { size: 11 }
+              },
+              grid: {
+                color: 'rgba(30, 45, 71, 0.8)'
+              },
+              angleLines: {
+                color: 'rgba(30, 45, 71, 0.8)'
+              },
+              pointLabels: {
+                color: '#8B97AD',
+                font: {
+                  size: 13,
+                  weight: '600'
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: datasets.length > 1,
+              // ↑ 前回データがある時だけ凡例を表示
+              labels: {
+                color: '#8B97AD',
+                font: { size: 12 },
+                boxWidth: 12,
+                padding: 16
+              }
+            }
+          }
+        }
+      });
+    }
+
+    /**
+     * saveSkillRecord - 現在のスキル評価をLocalStorageに保存
+     * 
+     * 【解説】
+     * 記録は配列の配列として保存:
+     * [
+     *   { date: '2026-06-11', values: [3, 4, 2, 5, 3, 3] },
+     *   { date: '2026-06-18', values: [4, 4, 3, 5, 3, 4] }
+     * ]
+     */
+    function saveSkillRecord() {
+      var records = getSkillRecords();
+      var today = getTodayString();
+      var values = getSkillValues();
+
+      // 同じ日の記録があれば上書き、なければ追加
+      var found = false;
+      for (var i = 0; i < records.length; i++) {
+        if (records[i].date === today) {
+          records[i].values = values;
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        records.push({ date: today, values: values });
+      }
+
+      localStorage.setItem('6thman_skills', JSON.stringify(records));
+
+      // 記録一覧を再描画
+      renderSkillHistory();
+
+      // チャートを再初期化（前回データの更新のため）
+      if (radarChart) {
+        radarChart.destroy();
+        // ↑ Chart.jsは同じcanvasに重ねて作れないので、
+        //   一度 destroy() してから作り直す
+      }
+      initRadarChart();
+
+      // フィードバック表示
+      var btn = document.querySelector('.btn-save-skill');
+      btn.textContent = '✓ 保存しました！';
+      setTimeout(function() {
+        btn.textContent = '📊 この評価を記録する';
+      }, 1500);
+    }
+
+    /**
+     * getSkillRecords - 全記録をLocalStorageから取得
+     */
+    function getSkillRecords() {
+      var data = localStorage.getItem('6thman_skills');
+      if (data) {
+        try { return JSON.parse(data); }
+        catch (e) { return []; }
+      }
+      return [];
+    }
+
+    /**
+     * loadLatestSkill - 最新の記録を取得（スライダー初期値用）
+     */
+    function loadLatestSkill() {
+      var records = getSkillRecords();
+      if (records.length > 0) {
+        return records[records.length - 1].values;
+      }
+      return null;
+    }
+
+    /**
+     * loadPreviousSkill - 前回（最新の1つ前）の記録を取得
+     */
+    function loadPreviousSkill() {
+      var records = getSkillRecords();
+      if (records.length >= 2) {
+        return records[records.length - 2].values;
+      }
+      return null;
+    }
+
+    /**
+     * renderSkillHistory - 記録一覧を描画
+     */
+    function renderSkillHistory() {
+      var records = getSkillRecords();
+      var html = '';
+
+      // 新しい順に表示（配列を逆順に）
+      for (var i = records.length - 1; i >= 0; i--) {
+        var r = records[i];
+        // 平均値を計算
+        var sum = 0;
+        for (var j = 0; j < r.values.length; j++) {
+          sum += r.values[j];
+        }
+        var avg = (sum / r.values.length).toFixed(1);
+        // ↑ toFixed(1) で小数第1位まで表示
+
+        html +=
+          '<div class="skill-history-item">' +
+          '  <span class="skill-history-date">' + r.date + '</span>' +
+          '  <span class="skill-history-avg">平均 ' + avg + '</span>' +
+          '  <button class="skill-history-btn" onclick="loadSkillRecord(' + i + ')">反映</button>' +
+          '</div>';
+      }
+
+      if (records.length === 0) {
+        html = '<div class="skill-history-item"><span class="skill-history-date">まだ記録がありません</span></div>';
+      }
+
+      document.getElementById('skill-history-list').innerHTML = html;
+    }
+
+    /**
+     * loadSkillRecord - 過去の記録をスライダーに反映
+     */
+    function loadSkillRecord(index) {
+      var records = getSkillRecords();
+      if (!records[index]) return;
+
+      var values = records[index].values;
+      for (var i = 0; i < skillKeys.length; i++) {
+        document.getElementById('skill-' + skillKeys[i]).value = values[i];
+        document.getElementById('val-' + skillKeys[i]).textContent = values[i];
+      }
+
+      // チャートを更新
+      if (radarChart) {
+        radarChart.data.datasets[0].data = values;
+        radarChart.update();
+      }
+    }
+
+    // ============================================
+    // 9. 全体の初期化
+    // ============================================
+    initRadarChart();
+    renderSkillHistory();
+  </script>
+
+</body>
+</html>
