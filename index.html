@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>6th Man - 控え選手のための自主練コーチ</title>
+
+  <!-- PWA設定 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#E8611A">
+  <!-- iOS向け設定（iPhoneでもアプリとして動くようにする） -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="6th Man">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Noto+Sans+JP:wght@400;600;700;900&display=swap" rel="stylesheet">
   <!-- Chart.js: グラフ描画ライブラリ（CDNから読み込み） -->
@@ -2667,6 +2677,24 @@
     // ============================================
     initRadarChart();
     renderSkillHistory();
+    
+    // ============================================
+    // 10. Service Workerの登録
+    //
+    // 【解説】
+    // 'serviceWorker' in navigator で
+    // 「このブラウザがService Workerに対応しているか」を確認。
+    // 対応していれば service-worker.js を登録します。
+    // ============================================
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(function(registration) {
+          console.log('Service Worker 登録成功:', registration.scope);
+        })
+        .catch(function(error) {
+          console.log('Service Worker 登録失敗:', error);
+        });
+    }
   </script>
 
 </body>
